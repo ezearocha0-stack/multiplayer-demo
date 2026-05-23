@@ -14,13 +14,35 @@ const io = new Server(server, {
 
 const players = {};
 
+const GRAVITY = 0.5;
+const GROUND_Y = 550;
+
+function applyGravity(player) {
+    player.vy += GRAVITY;
+    player.y += player.vy;
+
+    if (player.y >= GROUND_Y) {
+        player.y = GROUND_Y;
+        player.vy = 0;
+    }
+}
+
+setInterval(() => {
+    for (const id in players) {
+        applyGravity(players[id]);
+    }
+
+    io.emit("players", players);
+}, 1000 / 60);
+
 io.on("connection", (socket) => {
 
     console.log("Jugador conectado:", socket.id);
 
     players[socket.id] = {
         x: 100,
-        y: 100
+        y: 100,
+        vy: 0
     };
 
     io.emit("players", players);
@@ -28,11 +50,7 @@ io.on("connection", (socket) => {
     socket.on("move", (data) => {
 
         if (players[socket.id]) {
-
             players[socket.id].x = data.x;
-            players[socket.id].y = data.y;
-
-            io.emit("players", players);
         }
     });
 

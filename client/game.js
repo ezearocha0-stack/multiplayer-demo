@@ -26,19 +26,19 @@ window.addEventListener("keyup", (e) => {
 
 socket.on("players", (serverPlayers) => {
     players = serverPlayers;
+
+    if (players[socket.id]) {
+        player.x = players[socket.id].x;
+        player.y = players[socket.id].y;
+    }
 });
 
 function update() {
 
-    if (keys["w"]) player.y -= player.speed;
-    if (keys["s"]) player.y += player.speed;
     if (keys["a"]) player.x -= player.speed;
     if (keys["d"]) player.x += player.speed;
 
-    socket.emit("move", {
-        x: player.x,
-        y: player.y
-    });
+    socket.emit("move", { x: player.x });
 }
 
 function draw() {
