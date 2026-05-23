@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3000");
+const socket = io("https://multiplayer-demo-9g29.onrender.com");
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
