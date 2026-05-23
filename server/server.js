@@ -55,7 +55,10 @@ setInterval(() => {
         applyPhysics(players[id], inputs[id] || {});
     }
 
-    io.emit("players", players);
+    io.emit("players", {
+        players: players,
+        timestamp: Date.now()
+    });
 }, 1000 / 60);
 
 io.on("connection", (socket) => {
@@ -74,7 +77,10 @@ io.on("connection", (socket) => {
         jump: false
     };
 
-    io.emit("players", players);
+    io.emit("players", {
+        players: players,
+        timestamp: Date.now()
+    });
 
     socket.on("move", (data) => {
         if (!players[socket.id]) {
@@ -88,6 +94,10 @@ io.on("connection", (socket) => {
         };
     });
 
+    socket.on("ping_test", (clientTime) => {
+        socket.emit("pong_test", clientTime);
+    });
+
     socket.on("disconnect", () => {
 
         console.log("Jugador desconectado");
@@ -95,7 +105,10 @@ io.on("connection", (socket) => {
         delete players[socket.id];
         delete inputs[socket.id];
 
-        io.emit("players", players);
+        io.emit("players", {
+            players: players,
+            timestamp: Date.now()
+        });
     });
 });
 
