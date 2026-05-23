@@ -13,11 +13,32 @@ const io = new Server(server, {
 });
 
 const players = {};
+const inputs = {};
 
 const GRAVITY = 0.5;
+const JUMP_FORCE = -12;
+const MOVE_SPEED = 5;
+const PLAYER_SIZE = 50;
 const GROUND_Y = 550;
+const WORLD_WIDTH = 2000;
 
-function applyGravity(player) {
+function isGrounded(player) {
+    return player.y >= GROUND_Y;
+}
+
+function applyPhysics(player, input) {
+    if (input.left) {
+        player.x -= MOVE_SPEED;
+    }
+
+    if (input.right) {
+        player.x += MOVE_SPEED;
+    }
+
+    if (input.jump && isGrounded(player)) {
+        player.vy = JUMP_FORCE;
+    }
+
     player.vy += GRAVITY;
     player.y += player.vy;
 
@@ -25,11 +46,13 @@ function applyGravity(player) {
         player.y = GROUND_Y;
         player.vy = 0;
     }
+
+    player.x = Math.max(0, Math.min(player.x, WORLD_WIDTH - PLAYER_SIZE));
 }
 
 setInterval(() => {
     for (const id in players) {
-        applyGravity(players[id]);
+        applyPhysics(players[id], inputs[id] || {});
     }
 
     io.emit("players", players);
@@ -45,13 +68,24 @@ io.on("connection", (socket) => {
         vy: 0
     };
 
+    inputs[socket.id] = {
+        left: false,
+        right: false,
+        jump: false
+    };
+
     io.emit("players", players);
 
     socket.on("move", (data) => {
-
-        if (players[socket.id]) {
-            players[socket.id].x = data.x;
+        if (!players[socket.id]) {
+            return;
         }
+
+        inputs[socket.id] = {
+            left: !!data.left,
+            right: !!data.right,
+            jump: !!data.jump
+        };
     });
 
     socket.on("disconnect", () => {
@@ -59,6 +93,7 @@ io.on("connection", (socket) => {
         console.log("Jugador desconectado");
 
         delete players[socket.id];
+        delete inputs[socket.id];
 
         io.emit("players", players);
     });

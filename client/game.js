@@ -7,17 +7,16 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const keys = {};
-
-const player = {
-    x: 200,
-    y: 200,
-    speed: 5
-};
+let wantJump = false;
 
 let players = {};
 
 window.addEventListener("keydown", (e) => {
     keys[e.key] = true;
+
+    if (e.key === "w") {
+        wantJump = true;
+    }
 });
 
 window.addEventListener("keyup", (e) => {
@@ -26,19 +25,16 @@ window.addEventListener("keyup", (e) => {
 
 socket.on("players", (serverPlayers) => {
     players = serverPlayers;
-
-    if (players[socket.id]) {
-        player.x = players[socket.id].x;
-        player.y = players[socket.id].y;
-    }
 });
 
 function update() {
+    socket.emit("move", {
+        left: keys["a"],
+        right: keys["d"],
+        jump: wantJump
+    });
 
-    if (keys["a"]) player.x -= player.speed;
-    if (keys["d"]) player.x += player.speed;
-
-    socket.emit("move", { x: player.x });
+    wantJump = false;
 }
 
 function draw() {
